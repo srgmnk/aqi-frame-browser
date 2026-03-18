@@ -53,7 +53,7 @@ body {
 
 .card.single,
 .card.empty {
-  width: 80px;
+  width: 56px;
 }
 
 .card.multi {
@@ -62,8 +62,8 @@ body {
 }
 
 .number {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1;
   text-align: center;
   margin: 2px 0 10px;
@@ -82,8 +82,8 @@ body {
 }
 
 .thumb {
-  width: 60px;
-  height: 60px;
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   object-fit: cover;
   display: block;
@@ -91,8 +91,8 @@ body {
 }
 
 .placeholder-box {
-  width: 60px;
-  height: 60px;
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
   background: transparent;
   border: 1px solid var(--slot-border);
