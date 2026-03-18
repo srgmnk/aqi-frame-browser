@@ -33,11 +33,11 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 16px 16px;
+  gap: 12px 12px;
 }
 
 .card {
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 8px;
   border: 1px solid var(--border);
   background: var(--card-bg);
@@ -84,7 +84,7 @@ body {
 .thumb {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: 6px;
   object-fit: cover;
   display: block;
   background: #e6e6e6;
