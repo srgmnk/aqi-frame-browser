@@ -6,17 +6,8 @@ const REGISTRY_FILE = "real_images.json";
 const START = 0;
 const END = 301;
 
-const imagesApiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${IMAGES_DIR}?ref=${BRANCH}`;
-const registryUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${REGISTRY_FILE}`;
 const rawBase = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${IMAGES_DIR}`;
-
-async function fetchImages() {
-  const response = await fetch(imagesApiUrl);
-  if (!response.ok) {
-    throw new Error(`GitHub API error: ${response.status}`);
-  }
-  return response.json();
-}
+const registryUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${REGISTRY_FILE}`;
 
 async function fetchRegistry() {
   const response = await fetch(registryUrl);
@@ -26,40 +17,24 @@ async function fetchRegistry() {
   return response.json();
 }
 
-function parseAqiFileName(name) {
-  const match = name.match(/^(\d+)(?:-(\d+))?\.png$/i);
-  if (!match) return null;
+function buildItemsForAqi(aqi) {
+  const items = [];
 
-  return {
-    aqi: Number(match[1]),
-    variant: match[2] ? Number(match[2]) : 0,
-    fileName: name,
-  };
-}
+  // базовая картинка
+  items.push({
+    fileName: `${aqi}.png`,
+    variant: 0,
+  });
 
-function buildMap(files) {
-  const map = new Map();
-
-  for (let i = START; i <= END; i += 1) {
-    map.set(i, []);
+  // пробуем варианты -1, -2, -3... (до разумного лимита)
+  for (let i = 1; i <= 6; i++) {
+    items.push({
+      fileName: `${aqi}-${i}.png`,
+      variant: i,
+    });
   }
 
-  for (const file of files) {
-    if (file.type !== "file") continue;
-
-    const parsed = parseAqiFileName(file.name);
-    if (!parsed) continue;
-    if (parsed.aqi < START || parsed.aqi > END) continue;
-
-    map.get(parsed.aqi).push(parsed);
-  }
-
-  for (const [aqi, items] of map.entries()) {
-    items.sort((a, b) => a.variant - b.variant);
-    map.set(aqi, items);
-  }
-
-  return map;
+  return items;
 }
 
 function createEmptyCard(aqi) {
@@ -90,14 +65,19 @@ function createFilledCard(aqi, items) {
   const thumbs = document.createElement("div");
   thumbs.className = "thumbs";
 
-  for (const item of items) {
+  items.forEach(item => {
     const img = document.createElement("img");
     img.className = "thumb";
     img.src = `${rawBase}/${item.fileName}`;
-    img.alt = item.fileName;
     img.loading = "lazy";
+
+    // если картинка не существует — просто скрываем
+    img.onerror = () => {
+      img.remove();
+    };
+
     thumbs.appendChild(img);
-  }
+  });
 
   card.appendChild(number);
   card.appendChild(thumbs);
@@ -105,12 +85,11 @@ function createFilledCard(aqi, items) {
   return card;
 }
 
-function render(map, registry) {
+function render(registry) {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
 
-  for (let aqi = START; aqi <= END; aqi += 1) {
-    const allItems = map.get(aqi) || [];
+  for (let aqi = START; aqi <= END; aqi++) {
     const isReal = Boolean(registry[String(aqi)]);
 
     let card;
@@ -118,8 +97,8 @@ function render(map, registry) {
     if (!isReal) {
       card = createEmptyCard(aqi);
     } else {
-      const realItems = allItems.filter(item => item.variant >= 0);
-      card = createFilledCard(aqi, realItems);
+      const items = buildItemsForAqi(aqi);
+      card = createFilledCard(aqi, items);
     }
 
     grid.appendChild(card);
@@ -128,17 +107,12 @@ function render(map, registry) {
 
 async function main() {
   try {
-    const [files, registry] = await Promise.all([
-      fetchImages(),
-      fetchRegistry(),
-    ]);
-
-    const map = buildMap(files);
-    render(map, registry);
+    const registry = await fetchRegistry();
+    render(registry);
   } catch (error) {
     console.error(error);
-    const grid = document.getElementById("grid");
-    grid.innerHTML = `<div style="color:#999;">Failed to load data.</div>`;
+    document.getElementById("grid").innerHTML =
+      `<div style="color:#999;">Failed to load data.</div>`;
   }
 }
 
