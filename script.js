@@ -2,16 +2,26 @@ const OWNER = "srgmnk";
 const REPO = "AQI-Frame";
 const BRANCH = "main";
 const IMAGES_DIR = "images";
+const REGISTRY_FILE = "real_images.json";
 const START = 0;
 const END = 301;
 
-const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${IMAGES_DIR}?ref=${BRANCH}`;
+const imagesApiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${IMAGES_DIR}?ref=${BRANCH}`;
+const registryUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${REGISTRY_FILE}`;
 const rawBase = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${IMAGES_DIR}`;
 
 async function fetchImages() {
-  const response = await fetch(apiUrl);
+  const response = await fetch(imagesApiUrl);
   if (!response.ok) {
     throw new Error(`GitHub API error: ${response.status}`);
+  }
+  return response.json();
+}
+
+async function fetchRegistry() {
+  const response = await fetch(registryUrl);
+  if (!response.ok) {
+    throw new Error(`Registry fetch error: ${response.status}`);
   }
   return response.json();
 }
@@ -95,15 +105,22 @@ function createFilledCard(aqi, items) {
   return card;
 }
 
-function render(map) {
+function render(map, registry) {
   const grid = document.getElementById("grid");
   grid.innerHTML = "";
 
   for (let aqi = START; aqi <= END; aqi += 1) {
-    const items = map.get(aqi) || [];
-    const card = items.length === 0
-      ? createEmptyCard(aqi)
-      : createFilledCard(aqi, items);
+    const allItems = map.get(aqi) || [];
+    const isReal = Boolean(registry[String(aqi)]);
+
+    let card;
+
+    if (!isReal) {
+      card = createEmptyCard(aqi);
+    } else {
+      const realItems = allItems.filter(item => item.variant >= 0);
+      card = createFilledCard(aqi, realItems);
+    }
 
     grid.appendChild(card);
   }
@@ -111,13 +128,17 @@ function render(map) {
 
 async function main() {
   try {
-    const files = await fetchImages();
+    const [files, registry] = await Promise.all([
+      fetchImages(),
+      fetchRegistry(),
+    ]);
+
     const map = buildMap(files);
-    render(map);
+    render(map, registry);
   } catch (error) {
     console.error(error);
     const grid = document.getElementById("grid");
-    grid.innerHTML = `<div style="color:#999;">Failed to load images.</div>`;
+    grid.innerHTML = `<div style="color:#999;">Failed to load data.</div>`;
   }
 }
 
