@@ -1,0 +1,92 @@
+:root {
+  --bg: #f3f3f1;
+  --text: #7aa03a;
+  --muted: #c9c9c9;
+  --border: #a8bf79;
+  --border-muted: #d0d0d0;
+  --card-bg: #edf0e6;
+  --card-empty-bg: transparent;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.card {
+  border-radius: 16px;
+  padding: 8px;
+  border: 2px solid var(--border);
+  background: var(--card-bg);
+  min-width: 120px;
+}
+
+.card.empty {
+  border: 2px dashed var(--border-muted);
+  background: var(--card-empty-bg);
+}
+
+.card.single {
+  width: 84px;
+}
+
+.card.multi {
+  width: auto;
+  max-width: 100%;
+}
+
+.card.empty .number {
+  color: var(--muted);
+}
+
+.number {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.thumbs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+  background: #e8e8e8;
+}
+
+.placeholder-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  border: 2px solid var(--border-muted);
+  background: transparent;
+}
